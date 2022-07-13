@@ -16,7 +16,7 @@ class Game_State:
 
 # Screen configuration
 SCREEN_WIDTH = 240
-SCREEN_HEIGHT = 96
+SCREEN_HEIGHT = 150
 
 # Game configuration
 PLAYER_X_START = 10
@@ -100,6 +100,8 @@ class Background:
       # draw background
         pyxel.blt(self.x1, self.y1, 1, 0, 0, 256, 96)
         pyxel.blt(self.x2, self.y2, 1, 0, 0, 256, 96)
+        pyxel.blt(self.x1 - 20, self.y1 + (150 - 60), 1, 0, 0, 256, 96)
+        pyxel.blt(self.x2 - 20, self.y2 + (150 - 60), 1, 0, 0, 256, 96)
 
 
 class Food:
@@ -113,7 +115,7 @@ class Food:
         food.append(self)
 
     def update(self):
-        self.x = self.x - current_game_speed
+        self.x = self.x - current_game_speed + 0.3
         if(self.x < -10):
             self.is_alive = False
 
@@ -143,7 +145,7 @@ class Blast:
             pyxel.circb(self.x, self.y, self.radius, BLAST_COLOR_OUT)
 
 
-class Dinosaur:
+class SmallRexDinosaur:
     # Class dinosaur represent an enemy dinosaur
     def __init__(self, x: int, y):
         # init
@@ -162,7 +164,37 @@ class Dinosaur:
 
     def update(self):
         # Move to leftside
-        self.x = self.x - 1
+        self.x = self.x - current_game_speed*1.5 - 1
+        if(self.x < -10):
+            self.is_alive = False
+
+    def draw(self):
+        # draw dinosaur
+        self.animation()
+
+
+class BigRexDinosaur:
+    # Class dinosaur represent an enemy dinosaur
+    def __init__(self, x, y):
+        # init
+        self.x = x
+        self.y = y
+        self.h = 16
+        self.w = 32
+        self.is_alive = True
+        enemy.append(self)
+
+    def animation(self):
+        if(pyxel.frame_count % 14 < 6):
+            pyxel.blt(self.x, self.y, 0, 16, 16, self.w, self.h)
+        elif(pyxel.frame_count % 14 > 10):
+            pyxel.blt(self.x, self.y, 0, 16, 32, self.w, self.h)
+        else:
+            pyxel.blt(self.x, self.y, 0, 16, 48, self.w, self.h)
+
+    def update(self):
+        # Move to leftside
+        self.x = self.x - current_game_speed + 0.2
         if(self.x < -10):
             self.is_alive = False
 
@@ -203,13 +235,14 @@ class Player:
         if not self.is_alive:
             return
         if(self.x > PLAYER_X_START):
-            self.x -= current_game_speed
+            if(not (pyxel.btn(pyxel.KEY_D) and self.booster > 0)):
+                self.x -= current_game_speed
         if(not pyxel.btn(pyxel.KEY_D) and self.booster <= 100):
-            self.booster += current_game_speed
+            self.booster += 0.7
         if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
             self.booster = self.booster - 1.5
             if(self.x < SCREEN_WIDTH - self.h):
-                self.x = self.x + current_game_speed * 2
+                self.x = self.x + ((SCREEN_WIDTH/3) / (100/1.5))
         if(pyxel.btn(pyxel.KEY_W)):
             if(self.y > 0):
                 self.y = self.y - current_game_speed
@@ -222,11 +255,12 @@ class Player:
         return(x >= 0 and y >= 0 and y <= SCREEN_HEIGHT and x <= SCREEN_WIDTH)
 
     def draw_booster(self):
-        pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 3)
+        pyxel.rect(self.x, self.y - 3, 14, 1, 6)
+        pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 12)
 
     def draw(self):
         # Draw with animations
-        if(pyxel.btn(pyxel.KEY_D)):
+        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
             self.speedingAnimation()
         else:
             self.runningAnimation()
@@ -240,6 +274,7 @@ class App:
         sound_set_up()
         self.game_state = Game_State.SCREEN_MENU
         self.background = Background()
+        self.last_score = 0
         # pyxel.playm(0, loop=True)
         self.reset()
         pyxel.run(self.update, self.draw)
@@ -252,8 +287,7 @@ class App:
 
     def update(self):
         global current_game_speed
-        if(pyxel.frame_count % 60 == 0):
-            current_game_speed += current_game_acc
+        current_game_speed += current_game_acc
         self.background.update()
         match self.game_state:
             case Game_State.SCREEN_MENU:
@@ -267,22 +301,26 @@ class App:
 
     def update_screen_menu(self):
         if(pyxel.btn(pyxel.KEY_SPACE)):
+            self.reset()
             self.game_state = Game_State.SCREEN_PLAY
 
     def update_screen_play(self):
         global high_score
         global current_game_speed
-        if(int(pyxel.frame_count / current_game_speed) % 60 == 0):
+        if(int(pyxel.frame_count / current_game_speed) % 60 == 0 or pyxel.frame_count % 60 == 0):
             self.current_score += 1
 
-        # spawn dinosaurs
+        # spawn dinosaurs & food
         r = random.randint(0, 3)
-        if(pyxel.frame_count % 60 == 0 and len(enemy) < 20):
+        if(pyxel.frame_count % 25 == 0 and len(enemy) < 20):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            Dinosaur(SCREEN_WIDTH - 8, new_y)
-        if(pyxel.frame_count % 120 == 0 and len(food) < 5):
+            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
+        if(pyxel.frame_count % 30 == 0 and len(food) < 5):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Food(SCREEN_WIDTH - 8, new_y, r)
+        if(pyxel.frame_count % 80 == 0 and len(enemy) < 20):
+            new_y = random.randint(0, SCREEN_HEIGHT - 32)
+            BigRexDinosaur(SCREEN_WIDTH - 8, new_y)
 
         for item in food:
             if (
@@ -316,6 +354,7 @@ class App:
                 pyxel.play(0, 1)
                 if(self.current_score > high_score):
                     high_score = self.current_score
+                    self.last_score = self.current_score
         update_list(food)
         update_list(enemy)
         update_list(blasts)
@@ -355,26 +394,41 @@ class App:
         draw_list(blasts)
         draw_list(food)
         score = f"{self.current_score:>03}"
-        pyxel.text(SCREEN_WIDTH - 15, 5, score, 10)
-        pyxel.text(SCREEN_WIDTH - 16, 5, score, 1)
+        pyxel.text(SCREEN_WIDTH - 15, 5, score, 1)
+        pyxel.text(SCREEN_WIDTH - 16, 5, score, 7)
 
     def draw_screen_over(self):
+        score = f"{self.last_score}"
         pyxel.text(SCREEN_WIDTH/100*45, SCREEN_HEIGHT /
                    100*30, "GAME_OVER", pyxel.frame_count % 12)
+        pyxel.text(SCREEN_WIDTH/100*51, SCREEN_HEIGHT /
+                   100*40, str(self.last_score), 1)
+        pyxel.text(SCREEN_WIDTH/100*51 - 1, SCREEN_HEIGHT /
+                   100*40, str(self.last_score), 7)
         pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
                    100*70, " (R) REPLAY ", 1)
+        pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
+                   100*70, " (R) REPLAY ", 7)
         pyxel.text(SCREEN_WIDTH/100*43, SCREEN_HEIGHT /
                    100*80, " (M) MENU ", 1)
         pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
-                   100*90, "High Score: " + str(high_score), 1)
+                   100*90, "HIGH SCORE: " + str(high_score), 1)
+        pyxel.text(SCREEN_WIDTH/100*43 - 1, SCREEN_HEIGHT /
+                   100*80, " (M) MENU ", 7)
+        pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
+                   100*90, "HIGH SCORE: " + str(high_score), 7)
 
     def draw_screen_menu(self):
         pyxel.text(SCREEN_WIDTH/100*40, SCREEN_HEIGHT /
                    100*30, "Dinosaur Tactic", pyxel.frame_count % 16)
         pyxel.text(SCREEN_WIDTH/100*40, SCREEN_HEIGHT /
-                   100*70, "- PRESS SPACE -", 9)
+                   100*70, "- PRESS SPACE -", 1)
         pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
-                   100*80, "High Score: " + str(high_score), 9)
+                   100*80, "HIGH SCORE: " + str(high_score), 1)
+        pyxel.text(SCREEN_WIDTH/100*40 - 1, SCREEN_HEIGHT /
+                   100*70, "- PRESS SPACE -", 7)
+        pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
+                   100*80, "HIGH SCORE: " + str(high_score), 7)
 
 
 def sound_set_up():
@@ -383,7 +437,7 @@ def sound_set_up():
     pyxel.sound(1).set(notes='A2C2', tones='TT',
                        volumes='33', effects='NN', speed=10)
     pyxel.sound(3).set(notes=("f0 r a4 r  f0 f0 a4 r" "f0 r a4 r   f0 f0 a4 f0"),
-                       tones="n", volumes="3", effects="f", speed=25)
+                       tones="n", volumes="1", effects="f", speed=25)
     pyxel.music(0).set([], [], [3], [])
 
 
