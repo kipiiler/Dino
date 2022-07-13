@@ -125,7 +125,6 @@ class Food:
 
 class Blast:
     # Blast class represent the explosion when player contact with a dinosaur
-
     def __init__(self, x, y):
         # init
         self.x = x
@@ -170,6 +169,45 @@ class SmallRexDinosaur:
 
     def draw(self):
         # draw dinosaur
+        self.animation()
+
+
+class NormalFlyingDinosaur:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.h = 8
+        self.w = 8
+        self.acc = 0.1
+        self.create_at = pyxel.frame_count
+        self.is_comming = True
+        self.is_alive = True
+        enemy.append(self)
+
+    def animation(self):
+        if(self.is_comming):
+            if(pyxel.frame_count % 20 > 7):
+                pyxel.blt(self.x, self.y, 0, 8, 16, self.w, self.h)
+            else:
+                pyxel.blt(self.x, self.y, 0, 8, 24, self.w, self.h)
+        else:
+            if(pyxel.frame_count % 20 > 7):
+                pyxel.blt(self.x, self.y, 0, 16, 0, self.w, self.h)
+            else:
+                pyxel.blt(self.x, self.y, 0, 16, 8, self.w, self.h)
+
+    def update(self):
+        if(self.x < -10):
+            self.is_alive = False
+        if(self.is_comming):
+            if(pyxel.frame_count - self.create_at == 60 * 3):
+                self.is_comming = False
+                self.w = 24
+        else:
+            self.acc += 0.2
+            self.x -= current_game_speed * (self.acc)
+
+    def draw(self):
         self.animation()
 
 
@@ -275,7 +313,7 @@ class App:
         self.game_state = Game_State.SCREEN_MENU
         self.background = Background()
         self.last_score = 0
-        # pyxel.playm(0, loop=True)
+        pyxel.playm(0, loop=True)
         self.reset()
         pyxel.run(self.update, self.draw)
 
@@ -312,15 +350,18 @@ class App:
 
         # spawn dinosaurs & food
         r = random.randint(0, 3)
-        if(pyxel.frame_count % 25 == 0 and len(enemy) < 20):
+        if(pyxel.frame_count % 25 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
-        if(pyxel.frame_count % 30 == 0 and len(food) < 5):
+        if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Food(SCREEN_WIDTH - 8, new_y, r)
-        if(pyxel.frame_count % 80 == 0 and len(enemy) < 20):
+        if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 32)
             BigRexDinosaur(SCREEN_WIDTH - 8, new_y)
+        if(pyxel.frame_count % 120 == r and len(enemy) < 30):
+            new_y = random.randint(0, SCREEN_HEIGHT - 32)
+            NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y)
 
         for item in food:
             if (
@@ -354,7 +395,7 @@ class App:
                 pyxel.play(0, 1)
                 if(self.current_score > high_score):
                     high_score = self.current_score
-                    self.last_score = self.current_score
+                self.last_score = self.current_score
         update_list(food)
         update_list(enemy)
         update_list(blasts)
@@ -369,10 +410,10 @@ class App:
     def update_screen_over(self):
         self.reset()
         if(pyxel.btn(pyxel.KEY_M)):
-            # pyxel.playm(0, loop=True)
+            pyxel.playm(0, loop=True)
             self.game_state = Game_State.SCREEN_MENU
         if(pyxel.btn(pyxel.KEY_R)):
-            # pyxel.playm(0, loop=True)
+            pyxel.playm(0, loop=True)
             self.game_state = Game_State.SCREEN_PLAY
 
     def draw(self):
@@ -398,13 +439,13 @@ class App:
         pyxel.text(SCREEN_WIDTH - 16, 5, score, 7)
 
     def draw_screen_over(self):
-        score = f"{self.last_score}"
+        score = f"{self.last_score:>02}"
         pyxel.text(SCREEN_WIDTH/100*45, SCREEN_HEIGHT /
                    100*30, "GAME_OVER", pyxel.frame_count % 12)
         pyxel.text(SCREEN_WIDTH/100*51, SCREEN_HEIGHT /
-                   100*40, str(self.last_score), 1)
+                   100*40, score, 1)
         pyxel.text(SCREEN_WIDTH/100*51 - 1, SCREEN_HEIGHT /
-                   100*40, str(self.last_score), 7)
+                   100*40, score, 7)
         pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
                    100*70, " (R) REPLAY ", 1)
         pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
