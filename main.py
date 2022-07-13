@@ -3,37 +3,71 @@ from matplotlib import animation
 import pyxel
 import random
 
+from traitlets import default
+
+# Screen Configuration
+
+
+class Game_State:
+    SCREEN_MENU = "menu"
+    SCREEN_PLAY = "play"
+    SCREEN_GAMEOVER = "over"
+
+
+# Screen configuration
+SCREEN_WIDTH = 240
+SCREEN_HEIGHT = 96
+
+# Game configuration
+PLAYER_X_START = 10
+PLAYER_Y_START = SCREEN_HEIGHT/2 - 8
+high_score = 0
+GAME_SPEED_NORMAL = 0.5
+GAME_ACCELERATE_NORMAL = 0.001
+current_game_speed = GAME_SPEED_NORMAL
+current_game_acc = GAME_ACCELERATE_NORMAL
+
 # Blast configuration
 BLAST_START_RADIUS = 1
 BLAST_END_RADIUS = 8
 BLAST_COLOR_IN = 7
 BLAST_COLOR_OUT = 10
 
-# Screen configuration
-SCREEN_WIDTH = 240
-SCREEN_HEIGHT = 96
-
 # List of blasts & enemies & obstacle
 blasts = []
 enemy = []
+food = []
 # TODO: implement obstacle class
 obstacle = []
 
 
+def reset_game_setting():
+    global blasts
+    global enemy
+    global food
+    global obstacle
+    global current_game_speed
+    current_game_speed = GAME_SPEED_NORMAL
+    blasts = []
+    enemy = []
+    food = []
+    obstacle = []
+
+
 def update_list(list):
-  # Update el in a list
+    # Update el in a list
     for elem in list:
         elem.update()
 
 
 def draw_list(list):
-  # Draw element in a list
+    # Draw element in a list
     for elem in list:
         elem.draw()
 
 
 def cleanup_list(list):
-  # Remove any el in list that is not alive
+    # Remove any el in list that is not alive
     i = 0
     while i < len(list):
         elem = list[i]
@@ -44,7 +78,7 @@ def cleanup_list(list):
 
 
 class Background:
-  # Endless moving background screen ( achieve by drawing two background continuously)
+    # Endless moving background screen ( achieve by drawing two background continuously)
 
     def __init__(self):
       # init with two background(x1, y1) & (x2, y2)
@@ -52,13 +86,11 @@ class Background:
         self.y1 = 0
         self.y2 = 0
         self.x2 = 256
-        self.v = 0.5
 
     def update(self):
       # Seemlessly make twobackground replace and moving toward left side to make endless effect
-        self.x1 -= self.v
-        self.x2 -= self.v
-        self.v += 0.00001
+        self.x1 -= current_game_speed
+        self.x2 -= current_game_speed
         if(self.x2 < 0):
             self.x1 = self.x2 + 256
         if(self.x1 < 0):
@@ -68,6 +100,25 @@ class Background:
       # draw background
         pyxel.blt(self.x1, self.y1, 1, 0, 0, 256, 96)
         pyxel.blt(self.x2, self.y2, 1, 0, 0, 256, 96)
+
+
+class Food:
+    def __init__(self, x, y, type=0):
+        self.x = x
+        self.y = y
+        self.type = type
+        self.w = 8
+        self.h = 8
+        self.is_alive = True
+        food.append(self)
+
+    def update(self):
+        self.x = self.x - current_game_speed
+        if(self.x < -10):
+            self.is_alive = False
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, 0, 0, self.type*8, self.w, self.h)
 
 
 class Blast:
@@ -95,13 +146,19 @@ class Blast:
 class Dinosaur:
     # Class dinosaur represent an enemy dinosaur
     def __init__(self, x: int, y):
-      # init
+        # init
         self.x = x
         self.y = y
         self.h = 8
         self.w = 8
         self.is_alive = True
         enemy.append(self)
+
+    def animation(self):
+        if(pyxel.frame_count % 20 > 7):
+            pyxel.blt(self.x, self.y, 0, 8, 0, self.w, self.h)
+        else:
+            pyxel.blt(self.x, self.y, 0, 8, 8, self.w, self.h)
 
     def update(self):
         # Move to leftside
@@ -111,11 +168,11 @@ class Dinosaur:
 
     def draw(self):
         # draw dinosaur
-        pyxel.rect(self.x, self.y, self.w, self.h, 3)
+        self.animation()
 
 
 class Player:
-  # Class present the player
+    # Class present the player
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -124,26 +181,16 @@ class Player:
         self.booster = 100
         self.is_alive = True
 
-    def standByAnimation(self):
-      # Load Animation when standing by
-        if(pyxel.frame_count % 20 > 7):
-            pyxel.blt(self.x, self.y, 0, 48, 0, self.w, self.h)
+    def speedingAnimation(self):
+        # Load Animation when standing by
+        if(pyxel.frame_count % 14 < 6):
+            pyxel.blt(self.x, self.y, 0, 64, 32, self.w, self.h)
+        elif(pyxel.frame_count % 14 > 10):
+            pyxel.blt(self.x, self.y, 0, 64, 16, self.w, self.h)
         else:
-            pyxel.blt(self.x, self.y, 0, 48, 0, self.w, self.h)
+            pyxel.blt(self.x, self.y, 0, 64, 48, self.w, self.h)
 
-    def xMovingAnimation(self):
-      # Load Animation when moving in x direction
-        # animation_frame = pyxel.frame_count % 20
-        # if(animation_frame < 2):
-        #     pyxel.blt(self.x, self.y, 0, 48, 0, self.w, self.h)
-        # elif(animation_frame < 4 and animation_frame > 1):
-        #     pyxel.blt(self.x, self.y, 0, 48, 16, self.w, self.h)
-        # elif(animation_frame < 5 and animation_frame > 3):
-        #     pyxel.blt(self.x, self.y, 0, 48, 32, self.w, self.h)
-        # elif(animation_frame < 7 and animation_frame > 5):
-        #     pyxel.blt(self.x, self.y, 0, 48, 48, self.w, self.h)
-        # else:
-        #     pyxel.blt(self.x, self.y, 0, 48, 64, self.w, self.h)
+    def runningAnimation(self):
         if(pyxel.frame_count % 14 < 6):
             pyxel.blt(self.x, self.y, 0, 48, 32, self.w, self.h)
         elif(pyxel.frame_count % 14 > 10):
@@ -151,59 +198,105 @@ class Player:
         else:
             pyxel.blt(self.x, self.y, 0, 48, 48, self.w, self.h)
 
-    def yMovingAnimation(self):
-      # Load Animation when moving in y direction
-        if(pyxel.frame_count % 10 > 4):
-            pyxel.blt(self.x, self.y, 0, 0, 16, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 8, 16, self.w, self.h)
-
     def update(self):
         # Moving player around with w a s d key
         if not self.is_alive:
             return
-        if(pyxel.btn(pyxel.KEY_D)):
+        if(self.x > PLAYER_X_START):
+            self.x -= current_game_speed
+        if(not pyxel.btn(pyxel.KEY_D) and self.booster <= 100):
+            self.booster += current_game_speed
+        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
+            self.booster = self.booster - 1.5
             if(self.x < SCREEN_WIDTH - self.h):
-                self.x = self.x + 1
-        if(pyxel.btn(pyxel.KEY_A)):
-            if(self.x > 0):
-                self.x = self.x - 1
+                self.x = self.x + current_game_speed * 2
         if(pyxel.btn(pyxel.KEY_W)):
             if(self.y > 0):
-                self.y = self.y - 1
+                self.y = self.y - current_game_speed
         if(pyxel.btn(pyxel.KEY_S)):
             if(self.y < SCREEN_HEIGHT - self.h):
-                self.y = self.y + 1
+                self.y = self.y + current_game_speed
 
     def checkBorder(x, y):
-      # Check whether player is in side the screen or not
+        # Check whether player is in side the screen or not
         return(x >= 0 and y >= 0 and y <= SCREEN_HEIGHT and x <= SCREEN_WIDTH)
 
+    def draw_booster(self):
+        pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 3)
+
     def draw(self):
-      # Draw with animations
-        if(pyxel.btn(pyxel.KEY_D) or pyxel.btn(pyxel.KEY_A)):
-            self.xMovingAnimation()
-        elif(pyxel.btn(pyxel.KEY_W) or pyxel.btn(pyxel.KEY_S)):
-            self.yMovingAnimation()
+        # Draw with animations
+        if(pyxel.btn(pyxel.KEY_D)):
+            self.speedingAnimation()
         else:
-            self.standByAnimation()
+            self.runningAnimation()
+        self.draw_booster()
 
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT)
         pyxel.load("assets/resources.pyxres", image=True)
-        self.x = 0
-        self.player = Player(0, 0)
+        sound_set_up()
+        self.game_state = Game_State.SCREEN_MENU
         self.background = Background()
+        # pyxel.playm(0, loop=True)
+        self.reset()
         pyxel.run(self.update, self.draw)
 
+    def reset(self):
+        reset_game_setting()
+        self.player = Player(PLAYER_X_START, PLAYER_Y_START)
+        self.player.is_alive = True
+        self.current_score = 0
+
     def update(self):
-      # spawn dinosaurs
+        global current_game_speed
+        if(pyxel.frame_count % 60 == 0):
+            current_game_speed += current_game_acc
+        self.background.update()
+        match self.game_state:
+            case Game_State.SCREEN_MENU:
+                self.update_screen_menu()
+            case Game_State.SCREEN_PLAY:
+                self.update_screen_play()
+            case Game_State.SCREEN_GAMEOVER:
+                self.update_screen_over()
+            case _:
+                return
+
+    def update_screen_menu(self):
+        if(pyxel.btn(pyxel.KEY_SPACE)):
+            self.game_state = Game_State.SCREEN_PLAY
+
+    def update_screen_play(self):
+        global high_score
+        global current_game_speed
+        if(int(pyxel.frame_count / current_game_speed) % 60 == 0):
+            self.current_score += 1
+
+        # spawn dinosaurs
+        r = random.randint(0, 3)
         if(pyxel.frame_count % 60 == 0 and len(enemy) < 20):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Dinosaur(SCREEN_WIDTH - 8, new_y)
-      # Detech collision with dinosaur
+        if(pyxel.frame_count % 120 == 0 and len(food) < 5):
+            new_y = random.randint(0, SCREEN_HEIGHT - 8)
+            Food(SCREEN_WIDTH - 8, new_y, r)
+
+        for item in food:
+            if (
+                self.player.x + self.player.w > item.x
+                and item.x + item.w > self.player.x
+                and self.player.y + self.player.h > item.y
+                and item.y + item.h > self.player.y
+            ):
+                if(item.is_alive):
+                    self.current_score += 10
+                    pyxel.play(0, 0)
+                item.is_alive = False
+
+        # Detech collision with dinosaur
         for dino in enemy:
             if (
                 self.player.x + self.player.w > dino.x
@@ -216,24 +309,82 @@ class App:
                 self.player.is_alive = False
                 blasts.append(
                     Blast(
-                        self.player.x + 4,
-                        self.player.y + 4,
+                        self.player.x + 8,
+                        self.player.y + 8,
                     )
                 )
-                pyxel.play(1, 1)
+                pyxel.play(0, 1)
+                if(self.current_score > high_score):
+                    high_score = self.current_score
+        update_list(food)
         update_list(enemy)
         update_list(blasts)
         cleanup_list(blasts)
         cleanup_list(enemy)
+        cleanup_list(food)
+        if(len(blasts) == 0 and not self.player.is_alive):
+            self.game_state = Game_State.SCREEN_GAMEOVER
+
         self.player.update()
-        self.background.update()
+
+    def update_screen_over(self):
+        self.reset()
+        if(pyxel.btn(pyxel.KEY_M)):
+            # pyxel.playm(0, loop=True)
+            self.game_state = Game_State.SCREEN_MENU
+        if(pyxel.btn(pyxel.KEY_R)):
+            # pyxel.playm(0, loop=True)
+            self.game_state = Game_State.SCREEN_PLAY
 
     def draw(self):
         pyxel.cls(0)
         self.background.draw()
-        draw_list(enemy)
+        match self.game_state:
+            case Game_State.SCREEN_MENU:
+                self.draw_screen_menu()
+            case Game_State.SCREEN_PLAY:
+                self.draw_screen_game()
+            case Game_State.SCREEN_GAMEOVER:
+                self.draw_screen_over()
+            case _:
+                return
+
+    def draw_screen_game(self):
         self.player.draw()
+        draw_list(enemy)
         draw_list(blasts)
+        draw_list(food)
+        score = f"{self.current_score:>03}"
+        pyxel.text(SCREEN_WIDTH - 15, 5, score, 10)
+        pyxel.text(SCREEN_WIDTH - 16, 5, score, 1)
+
+    def draw_screen_over(self):
+        pyxel.text(SCREEN_WIDTH/100*45, SCREEN_HEIGHT /
+                   100*30, "GAME_OVER", pyxel.frame_count % 12)
+        pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
+                   100*70, " (R) REPLAY ", 1)
+        pyxel.text(SCREEN_WIDTH/100*43, SCREEN_HEIGHT /
+                   100*80, " (M) MENU ", 1)
+        pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
+                   100*90, "High Score: " + str(high_score), 1)
+
+    def draw_screen_menu(self):
+        pyxel.text(SCREEN_WIDTH/100*40, SCREEN_HEIGHT /
+                   100*30, "Dinosaur Tactic", pyxel.frame_count % 16)
+        pyxel.text(SCREEN_WIDTH/100*40, SCREEN_HEIGHT /
+                   100*70, "- PRESS SPACE -", 9)
+        pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
+                   100*80, "High Score: " + str(high_score), 9)
+
+
+def sound_set_up():
+    pyxel.sound(0).set(notes='A2C3', tones='TT',
+                       volumes='33', effects='NN', speed=10)
+    pyxel.sound(1).set(notes='A2C2', tones='TT',
+                       volumes='33', effects='NN', speed=10)
+    pyxel.sound(3).set(notes=("f0 r a4 r  f0 f0 a4 r" "f0 r a4 r   f0 f0 a4 f0"),
+                       tones="n", volumes="3", effects="f", speed=25)
+    pyxel.music(0).set([], [], [3], [])
 
 
 App()
