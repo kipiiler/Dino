@@ -1,9 +1,5 @@
-from pickle import FALSE
-from matplotlib import animation
 import pyxel
 import random
-
-from traitlets import default
 
 # Screen Configuration
 
