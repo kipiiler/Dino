@@ -309,7 +309,9 @@ class App:
         self.game_state = Game_State.SCREEN_MENU
         self.background = Background()
         self.last_score = 0
-        pyxel.playm(0, loop=True)
+        self.music = True
+        if(self.music):
+            pyxel.playm(0, loop=True)
         self.reset()
         pyxel.run(self.update, self.draw)
 
@@ -337,6 +339,12 @@ class App:
         if(pyxel.btn(pyxel.KEY_SPACE)):
             self.reset()
             self.game_state = Game_State.SCREEN_PLAY
+        if(pyxel.btnr(pyxel.KEY_M) and self.music):
+            self.music = False
+            pyxel.stop()
+        elif(pyxel.btnr(pyxel.KEY_M) and not self.music):
+            self.music = True
+            pyxel.playm(0, loop=True)
 
     def update_screen_play(self):
         global high_score
@@ -405,11 +413,13 @@ class App:
 
     def update_screen_over(self):
         self.reset()
-        if(pyxel.btn(pyxel.KEY_M)):
-            pyxel.playm(0, loop=True)
+        if(pyxel.btn(pyxel.KEY_H)):
+            if(self.music):
+                pyxel.playm(0, loop=True)
             self.game_state = Game_State.SCREEN_MENU
         if(pyxel.btn(pyxel.KEY_R)):
-            pyxel.playm(0, loop=True)
+            if(self.music):
+                pyxel.playm(0, loop=True)
             self.game_state = Game_State.SCREEN_PLAY
 
     def draw(self):
@@ -447,11 +457,11 @@ class App:
         pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
                    100*70, " (R) REPLAY ", 7)
         pyxel.text(SCREEN_WIDTH/100*43, SCREEN_HEIGHT /
-                   100*80, " (M) MENU ", 1)
+                   100*80, " (H) HOME ", 1)
         pyxel.text(SCREEN_WIDTH/100*42, SCREEN_HEIGHT /
                    100*90, "HIGH SCORE: " + str(high_score), 1)
         pyxel.text(SCREEN_WIDTH/100*43 - 1, SCREEN_HEIGHT /
-                   100*80, " (M) MENU ", 7)
+                   100*80, " (H) HOME ", 7)
         pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
                    100*90, "HIGH SCORE: " + str(high_score), 7)
 
@@ -466,6 +476,10 @@ class App:
                    100*70, "- PRESS SPACE -", 7)
         pyxel.text(SCREEN_WIDTH/100*42 - 1, SCREEN_HEIGHT /
                    100*80, "HIGH SCORE: " + str(high_score), 7)
+        if(self.music):
+            pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 32, 16, 16)
+        else:
+            pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 48, 16, 16)
 
 
 def sound_set_up():
