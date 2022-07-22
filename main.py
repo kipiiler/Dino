@@ -160,7 +160,7 @@ class SmallRexDinosaur:
     def update(self):
         # Move to leftside
         self.x = self.x - current_game_speed*1.5 - 1
-        if(self.x < -10):
+        if(self.x < -self.w):
             self.is_alive = False
 
     def draw(self):
@@ -193,7 +193,7 @@ class NormalFlyingDinosaur:
                 pyxel.blt(self.x, self.y, 0, 16, 8, self.w, self.h)
 
     def update(self):
-        if(self.x < -10):
+        if(self.x < -self.w):
             self.is_alive = False
         if(self.is_comming):
             if(pyxel.frame_count - self.create_at == 60 * 3):
@@ -229,7 +229,7 @@ class BigRexDinosaur:
     def update(self):
         # Move to leftside
         self.x = self.x - current_game_speed + 0.2
-        if(self.x < -10):
+        if(self.x < -self.w):
             self.is_alive = False
 
     def draw(self):
@@ -441,6 +441,10 @@ class App:
         draw_list(blasts)
         draw_list(food)
         score = f"{self.current_score:>03}"
+        debug = f"{len(enemy)}"
+        speed = f"{current_game_speed}"
+        pyxel.text(SCREEN_WIDTH - 15, 12, debug, 1)
+        pyxel.text(SCREEN_WIDTH - 15, 19, speed, 1)
         pyxel.text(SCREEN_WIDTH - 15, 5, score, 1)
         pyxel.text(SCREEN_WIDTH - 16, 5, score, 7)
 
