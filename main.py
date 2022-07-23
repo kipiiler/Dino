@@ -284,10 +284,6 @@ class Player:
             if(self.y < SCREEN_HEIGHT - self.h):
                 self.y = self.y + current_game_speed
 
-    def checkBorder(x, y):
-        # Check whether player is in side the screen or not
-        return(x >= 0 and y >= 0 and y <= SCREEN_HEIGHT and x <= SCREEN_WIDTH)
-
     def draw_booster(self):
         pyxel.rect(self.x, self.y - 3, 14, 1, 6)
         pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 12)
@@ -443,8 +439,8 @@ class App:
         score = f"{self.current_score:>03}"
         debug = f"{len(enemy)}"
         speed = f"{current_game_speed}"
-        pyxel.text(SCREEN_WIDTH - 15, 12, debug, 1)
-        pyxel.text(SCREEN_WIDTH - 15, 19, speed, 1)
+        # pyxel.text(SCREEN_WIDTH - 15, 12, debug, 1)
+        # pyxel.text(SCREEN_WIDTH - 15, 19, speed, 1)
         pyxel.text(SCREEN_WIDTH - 15, 5, score, 1)
         pyxel.text(SCREEN_WIDTH - 16, 5, score, 7)
 
