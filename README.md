@@ -24,20 +24,15 @@ Get away from dinosaurs as a cavemen in the Pre Historic Period.
 
 ### For developer
 
-**Clone the repo**
-'git clone https://github.com/kipiiler/Dino/'
+**Clone the repo** 
+`git clone https://github.com/kipiiler/Dino/`
 
-**Requirements**
-
-[Python 3.10 or above](https://www.python.org/downloads/release/python-3100/)
-
-[pip 22.2 or above](https://pypi.org/project/pip/)
-
+**Requirements**\
+[Python 3.10 or above](https://www.python.org/downloads/release/python-3100/)\
+[pip 22.2 or above](https://pypi.org/project/pip/)\
 [pyxel 1.7.1](https://github.com/kitao/pyxel)
 
-
-Python with specfic version: `py -3.? -m pip ...`
-
+Python with specfic version: `py -3.? -m pip ...`\
 List all version python: `py --list`
 
 **Useful command**
