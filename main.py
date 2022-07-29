@@ -1,5 +1,7 @@
 import pyxel
 import random
+from entities.dinosaurs.MovingDino import SmallRex
+from entities.dinosaurs.MovingDino import BigRex
 
 # Screen Configuration
 
@@ -140,34 +142,6 @@ class Blast:
             pyxel.circb(self.x, self.y, self.radius, BLAST_COLOR_OUT)
 
 
-class SmallRexDinosaur:
-    # Class dinosaur represent an enemy dinosaur
-    def __init__(self, x: int, y):
-        # init
-        self.x = x
-        self.y = y
-        self.h = 8
-        self.w = 8
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(pyxel.frame_count % 20 > 7):
-            pyxel.blt(self.x, self.y, 0, 8, 0, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 8, 8, self.w, self.h)
-
-    def update(self):
-        # Move to leftside
-        self.x = self.x - current_game_speed*1.5 - 1
-        if(self.x < -self.w):
-            self.is_alive = False
-
-    def draw(self):
-        # draw dinosaur
-        self.animation()
-
-
 class NormalFlyingDinosaur:
     def __init__(self, x, y):
         self.x = x
@@ -204,36 +178,6 @@ class NormalFlyingDinosaur:
             self.x -= current_game_speed * (self.acc)
 
     def draw(self):
-        self.animation()
-
-
-class BigRexDinosaur:
-    # Class dinosaur represent an enemy dinosaur
-    def __init__(self, x, y):
-        # init
-        self.x = x
-        self.y = y
-        self.h = 16
-        self.w = 32
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 16, 16, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 16, 32, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 16, 48, self.w, self.h)
-
-    def update(self):
-        # Move to leftside
-        self.x = self.x - current_game_speed + 0.2
-        if(self.x < -self.w):
-            self.is_alive = False
-
-    def draw(self):
-        # draw dinosaur
         self.animation()
 
 
@@ -352,13 +296,16 @@ class App:
         r = random.randint(0, 3)
         if(pyxel.frame_count % 25 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            # SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            SmallRex.SmallRexDinosaur(
+                SCREEN_WIDTH - 8, new_y, current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Food(SCREEN_WIDTH - 8, new_y, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
-            new_y = random.randint(0, SCREEN_HEIGHT - 32)
-            BigRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            new_y = random.randint(0, SCREEN_HEIGHT - 8)
+            BigRex.BigRexDinosaur(
+                SCREEN_WIDTH - 8, new_y, current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 120 == r and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 32)
             NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y)
