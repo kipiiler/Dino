@@ -2,6 +2,7 @@ import pyxel
 import random
 from entities.dinosaurs.MovingDino import SmallRex
 from entities.dinosaurs.MovingDino import BigRex
+from entities.background.background import Background
 
 # Screen Configuration
 
@@ -73,33 +74,6 @@ def cleanup_list(list):
             list.pop(i)
         else:
             i += 1
-
-
-class Background:
-    # Endless moving background screen ( achieve by drawing two background continuously)
-
-    def __init__(self):
-      # init with two background(x1, y1) & (x2, y2)
-        self.x1 = 0
-        self.y1 = 0
-        self.y2 = 0
-        self.x2 = 256
-
-    def update(self):
-      # Seemlessly make twobackground replace and moving toward left side to make endless effect
-        self.x1 -= current_game_speed
-        self.x2 -= current_game_speed
-        if(self.x2 < 0):
-            self.x1 = self.x2 + 256
-        if(self.x1 < 0):
-            self.x2 = self.x1 + 256
-
-    def draw(self):
-      # draw background
-        pyxel.blt(self.x1, self.y1, 1, 0, 0, 256, 96)
-        pyxel.blt(self.x2, self.y2, 1, 0, 0, 256, 96)
-        pyxel.blt(self.x1 - 20, self.y1 + (150 - 60), 1, 0, 0, 256, 96)
-        pyxel.blt(self.x2 - 20, self.y2 + (150 - 60), 1, 0, 0, 256, 96)
 
 
 class Food:
@@ -264,7 +238,7 @@ class App:
     def update(self):
         global current_game_speed
         current_game_speed += current_game_acc
-        self.background.update()
+        self.background.update(current_game_speed)
         match self.game_state:
             case Game_State.SCREEN_MENU:
                 self.update_screen_menu()
