@@ -1,8 +1,11 @@
 import pyxel
 import random
-from entities.dinosaurs.MovingDino import SmallRex
-from entities.dinosaurs.MovingDino import BigRex
+from entities.dinosaurs.MovingDino.SmallRex import SmallRexDinosaur
+from entities.dinosaurs.MovingDino.BigRex import BigRexDinosaur
 from entities.background.background import Background
+from entities.blast.blast import Blast
+from utils.utils import *
+from utils.sound import *
 
 # Screen Configuration
 
@@ -26,11 +29,6 @@ GAME_ACCELERATE_NORMAL = 0.001
 current_game_speed = GAME_SPEED_NORMAL
 current_game_acc = GAME_ACCELERATE_NORMAL
 
-# Blast configuration
-BLAST_START_RADIUS = 1
-BLAST_END_RADIUS = 8
-BLAST_COLOR_IN = 7
-BLAST_COLOR_OUT = 10
 
 # List of blasts & enemies & obstacle
 blasts = []
@@ -53,29 +51,6 @@ def reset_game_setting():
     obstacle = []
 
 
-def update_list(list):
-    # Update el in a list
-    for elem in list:
-        elem.update()
-
-
-def draw_list(list):
-    # Draw element in a list
-    for elem in list:
-        elem.draw()
-
-
-def cleanup_list(list):
-    # Remove any el in list that is not alive
-    i = 0
-    while i < len(list):
-        elem = list[i]
-        if not elem.is_alive:
-            list.pop(i)
-        else:
-            i += 1
-
-
 class Food:
     def __init__(self, x, y, type=0):
         self.x = x
@@ -93,27 +68,6 @@ class Food:
 
     def draw(self):
         pyxel.blt(self.x, self.y, 0, 0, self.type*8, self.w, self.h)
-
-
-class Blast:
-    # Blast class represent the explosion when player contact with a dinosaur
-    def __init__(self, x, y):
-        # init
-        self.x = x
-        self.y = y
-        self.radius = BLAST_START_RADIUS
-        self.is_alive = True
-
-    def update(self):
-        # Explode till END_RADIUS then disappear
-        self.radius += 0.7
-        if self.radius > BLAST_END_RADIUS:
-            self.is_alive = False
-
-    def draw(self):
-        if self.radius < BLAST_END_RADIUS:
-            pyxel.circ(self.x, self.y, self.radius, BLAST_COLOR_IN)
-            pyxel.circb(self.x, self.y, self.radius, BLAST_COLOR_OUT)
 
 
 class NormalFlyingDinosaur:
@@ -271,15 +225,15 @@ class App:
         if(pyxel.frame_count % 25 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             # SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
-            SmallRex.SmallRexDinosaur(
-                SCREEN_WIDTH - 8, new_y, current_game_speed, enemies=enemy)
+            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y,
+                             current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Food(SCREEN_WIDTH - 8, new_y, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            BigRex.BigRexDinosaur(
-                SCREEN_WIDTH - 8, new_y, current_game_speed, enemies=enemy)
+            BigRexDinosaur(SCREEN_WIDTH - 8, new_y,
+                           current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 120 == r and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 32)
             NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y)
@@ -401,16 +355,6 @@ class App:
             pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 32, 16, 16)
         else:
             pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 48, 16, 16)
-
-
-def sound_set_up():
-    pyxel.sound(0).set(notes='A2C3', tones='TT',
-                       volumes='33', effects='NN', speed=10)
-    pyxel.sound(1).set(notes='A2C2', tones='TT',
-                       volumes='33', effects='NN', speed=10)
-    pyxel.sound(3).set(notes=("f0 r a4 r  f0 f0 a4 r" "f0 r a4 r   f0 f0 a4 f0"),
-                       tones="n", volumes="1", effects="f", speed=25)
-    pyxel.music(0).set([], [], [3], [])
 
 
 App()
