@@ -6,6 +6,8 @@ from entities.background.background import Background
 from entities.blast.blast import Blast
 from utils.utils import *
 from utils.sound import *
+from entities.food.Food import *
+from entities.player import Player
 
 # Screen Configuration
 
@@ -51,25 +53,6 @@ def reset_game_setting():
     obstacle = []
 
 
-class Food:
-    def __init__(self, x, y, type=0):
-        self.x = x
-        self.y = y
-        self.type = type
-        self.w = 8
-        self.h = 8
-        self.is_alive = True
-        food.append(self)
-
-    def update(self):
-        self.x = self.x - current_game_speed + 0.3
-        if(self.x < -10):
-            self.is_alive = False
-
-    def draw(self):
-        pyxel.blt(self.x, self.y, 0, 0, self.type*8, self.w, self.h)
-
-
 class NormalFlyingDinosaur:
     def __init__(self, x, y):
         self.x = x
@@ -107,66 +90,6 @@ class NormalFlyingDinosaur:
 
     def draw(self):
         self.animation()
-
-
-class Player:
-    # Class present the player
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.w = 16
-        self.h = 16
-        self.booster = 100
-        self.is_alive = True
-
-    def speedingAnimation(self):
-        # Load Animation when standing by
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 64, 32, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 64, 16, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 64, 48, self.w, self.h)
-
-    def runningAnimation(self):
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 48, 32, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 48, 16, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 48, 48, self.w, self.h)
-
-    def update(self):
-        # Moving player around with w a s d key
-        if not self.is_alive:
-            return
-        if(self.x > PLAYER_X_START):
-            if(not (pyxel.btn(pyxel.KEY_D) and self.booster > 0)):
-                self.x -= current_game_speed
-        if(not pyxel.btn(pyxel.KEY_D) and self.booster <= 100):
-            self.booster += 0.7
-        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
-            self.booster = self.booster - 1.5
-            if(self.x < SCREEN_WIDTH - self.h):
-                self.x = self.x + ((SCREEN_WIDTH/3) / (100/1.5))
-        if(pyxel.btn(pyxel.KEY_W)):
-            if(self.y > 0):
-                self.y = self.y - current_game_speed
-        if(pyxel.btn(pyxel.KEY_S)):
-            if(self.y < SCREEN_HEIGHT - self.h):
-                self.y = self.y + current_game_speed
-
-    def draw_booster(self):
-        pyxel.rect(self.x, self.y - 3, 14, 1, 6)
-        pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 12)
-
-    def draw(self):
-        # Draw with animations
-        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
-            self.speedingAnimation()
-        else:
-            self.runningAnimation()
-        self.draw_booster()
 
 
 class App:
@@ -229,7 +152,7 @@ class App:
                              current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            Food(SCREEN_WIDTH - 8, new_y, r)
+            Food(SCREEN_WIDTH - 8, new_y, 1, food, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             BigRexDinosaur(SCREEN_WIDTH - 8, new_y,
@@ -280,7 +203,7 @@ class App:
         if(len(blasts) == 0 and not self.player.is_alive):
             self.game_state = Game_State.SCREEN_GAMEOVER
 
-        self.player.update()
+        self.player.update(current_game_speed)
 
     def update_screen_over(self):
         self.reset()

@@ -1,3 +1,16 @@
+import json
+import os
+
+
+def readJsonFile(rela_path):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, rela_path)
+    f = open(filename, "r")
+    response = json.load(f)
+    f.close()
+    return response
+
+
 def update_list(list):
     # Update el in a list
     for elem in list:
