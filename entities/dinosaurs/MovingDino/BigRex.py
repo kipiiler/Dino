@@ -1,10 +1,16 @@
 from entities.dinosaurs.MovingDino import BaseMovingDino
 import pyxel
 
+from utils.utils import get_cur_game_speed
+
 
 class BigRexDinosaur(BaseMovingDino.BaseMovingDino):
-    def __init__(self, x, y, cur_game_speed, enemies):
-        super().__init__(x, y, 32, 16, cur_game_speed * 1.5 - 0.2, enemies)
+    def __init__(self, x, y, enemies):
+        super().__init__(x, y, 32, 16, enemies)
+
+    def get_speed(self):
+        speed = get_cur_game_speed() * 1.5 - 0.2
+        return speed
 
     def update(self):
         super().update()

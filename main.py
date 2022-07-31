@@ -2,6 +2,7 @@ import pyxel
 import random
 from entities.dinosaurs.MovingDino.SmallRex import SmallRexDinosaur
 from entities.dinosaurs.MovingDino.BigRex import BigRexDinosaur
+from entities.dinosaurs.MovingDino.FlyingDino import NormalFlyingDinosaur
 from entities.background.background import Background
 from entities.blast.blast import Blast
 from utils.utils import *
@@ -51,45 +52,6 @@ def reset_game_setting():
     enemy = []
     food = []
     obstacle = []
-
-
-class NormalFlyingDinosaur:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.h = 8
-        self.w = 8
-        self.acc = 0.1
-        self.create_at = pyxel.frame_count
-        self.is_comming = True
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(self.is_comming):
-            if(pyxel.frame_count % 20 > 7):
-                pyxel.blt(self.x, self.y, 0, 8, 16, self.w, self.h)
-            else:
-                pyxel.blt(self.x, self.y, 0, 8, 24, self.w, self.h)
-        else:
-            if(pyxel.frame_count % 20 > 7):
-                pyxel.blt(self.x, self.y, 0, 16, 0, self.w, self.h)
-            else:
-                pyxel.blt(self.x, self.y, 0, 16, 8, self.w, self.h)
-
-    def update(self):
-        if(self.x < -self.w):
-            self.is_alive = False
-        if(self.is_comming):
-            if(pyxel.frame_count - self.create_at == 60 * 3):
-                self.is_comming = False
-                self.w = 24
-        else:
-            self.acc += 0.2
-            self.x -= current_game_speed * (self.acc)
-
-    def draw(self):
-        self.animation()
 
 
 class App:
@@ -148,18 +110,16 @@ class App:
         if(pyxel.frame_count % 25 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             # SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
-            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y,
-                             current_game_speed, enemies=enemy)
+            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             Food(SCREEN_WIDTH - 8, new_y, food, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            BigRexDinosaur(SCREEN_WIDTH - 8, new_y,
-                           current_game_speed, enemies=enemy)
+            BigRexDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
         if(pyxel.frame_count % 120 == r and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 32)
-            NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y)
+            NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
 
         for item in food:
             if (
