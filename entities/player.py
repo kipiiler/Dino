@@ -1,7 +1,7 @@
 import pyxel
-from utils.utils import readJsonFile
+from utils.utils import get_cur_game_speed, read_json_file
 
-configs = readJsonFile("../data/config.json")
+configs = read_json_file("../data/config.json")
 # print(configs)
 
 
@@ -32,13 +32,14 @@ class Player:
         else:
             pyxel.blt(self.x, self.y, 0, 48, 48, self.w, self.h)
 
-    def update(self, current_game_speed):
+    def update(self):
+        cur_game_speed = get_cur_game_speed()
         # Moving player around with w a s d key
         if not self.is_alive:
             return
         if(self.x > configs["PLAYER_X_START"]):
             if(not (pyxel.btn(pyxel.KEY_D) and self.booster > 0)):
-                self.x -= current_game_speed
+                self.x -= cur_game_speed
         if(not pyxel.btn(pyxel.KEY_D) and self.booster <= 100):
             self.booster += 0.7
         if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
@@ -47,10 +48,10 @@ class Player:
                 self.x = self.x + ((configs["SCREEN_WIDTH"]/3) / (100/1.5))
         if(pyxel.btn(pyxel.KEY_W)):
             if(self.y > 0):
-                self.y = self.y - current_game_speed
+                self.y = self.y - cur_game_speed
         if(pyxel.btn(pyxel.KEY_S)):
             if(self.y < configs["SCREEN_HEIGHT"] - self.h):
-                self.y = self.y + current_game_speed
+                self.y = self.y + cur_game_speed
 
     def draw_booster(self):
         pyxel.rect(self.x, self.y - 3, 14, 1, 6)

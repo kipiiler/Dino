@@ -152,7 +152,7 @@ class App:
                              current_game_speed, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            Food(SCREEN_WIDTH - 8, new_y, 1, food, r)
+            Food(SCREEN_WIDTH - 8, new_y, food, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
             BigRexDinosaur(SCREEN_WIDTH - 8, new_y,
@@ -203,7 +203,7 @@ class App:
         if(len(blasts) == 0 and not self.player.is_alive):
             self.game_state = Game_State.SCREEN_GAMEOVER
 
-        self.player.update(current_game_speed)
+        self.player.update()
 
     def update_screen_over(self):
         self.reset()

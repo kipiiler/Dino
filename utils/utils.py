@@ -1,8 +1,18 @@
 import json
 import os
+import pyxel
 
 
-def readJsonFile(rela_path):
+def get_cur_game_speed():
+    config = read_json_file('../data/config.json')
+    game_speed = config["GAME_SPEED_NORMAL"]
+    game_acc = config["GAME_ACCELERATE_NORMAL"]
+
+    current_game_speed = game_speed + (pyxel.frame_count % 10)*game_acc
+    return current_game_speed
+
+
+def read_json_file(rela_path):
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, rela_path)
     f = open(filename, "r")
