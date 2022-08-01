@@ -1,5 +1,14 @@
 import pyxel
 import random
+from entities.dinosaurs.MovingDino.SmallRex import SmallRexDinosaur
+from entities.dinosaurs.MovingDino.BigRex import BigRexDinosaur
+from entities.dinosaurs.MovingDino.FlyingDino import NormalFlyingDinosaur
+from entities.background.background import Background
+from entities.blast.blast import Blast
+from utils.utils import *
+from utils.sound import *
+from entities.food.Food import *
+from entities.player import Player
 
 # Screen Configuration
 
@@ -23,11 +32,6 @@ GAME_ACCELERATE_NORMAL = 0.001
 current_game_speed = GAME_SPEED_NORMAL
 current_game_acc = GAME_ACCELERATE_NORMAL
 
-# Blast configuration
-BLAST_START_RADIUS = 1
-BLAST_END_RADIUS = 8
-BLAST_COLOR_IN = 7
-BLAST_COLOR_OUT = 10
 
 # List of blasts & enemies & obstacle
 blasts = []
@@ -48,253 +52,6 @@ def reset_game_setting():
     enemy = []
     food = []
     obstacle = []
-
-
-def update_list(list):
-    # Update el in a list
-    for elem in list:
-        elem.update()
-
-
-def draw_list(list):
-    # Draw element in a list
-    for elem in list:
-        elem.draw()
-
-
-def cleanup_list(list):
-    # Remove any el in list that is not alive
-    i = 0
-    while i < len(list):
-        elem = list[i]
-        if not elem.is_alive:
-            list.pop(i)
-        else:
-            i += 1
-
-
-class Background:
-    # Endless moving background screen ( achieve by drawing two background continuously)
-
-    def __init__(self):
-      # init with two background(x1, y1) & (x2, y2)
-        self.x1 = 0
-        self.y1 = 0
-        self.y2 = 0
-        self.x2 = 256
-
-    def update(self):
-      # Seemlessly make twobackground replace and moving toward left side to make endless effect
-        self.x1 -= current_game_speed
-        self.x2 -= current_game_speed
-        if(self.x2 < 0):
-            self.x1 = self.x2 + 256
-        if(self.x1 < 0):
-            self.x2 = self.x1 + 256
-
-    def draw(self):
-      # draw background
-        pyxel.blt(self.x1, self.y1, 1, 0, 0, 256, 96)
-        pyxel.blt(self.x2, self.y2, 1, 0, 0, 256, 96)
-        pyxel.blt(self.x1 - 20, self.y1 + (150 - 60), 1, 0, 0, 256, 96)
-        pyxel.blt(self.x2 - 20, self.y2 + (150 - 60), 1, 0, 0, 256, 96)
-
-
-class Food:
-    def __init__(self, x, y, type=0):
-        self.x = x
-        self.y = y
-        self.type = type
-        self.w = 8
-        self.h = 8
-        self.is_alive = True
-        food.append(self)
-
-    def update(self):
-        self.x = self.x - current_game_speed + 0.3
-        if(self.x < -10):
-            self.is_alive = False
-
-    def draw(self):
-        pyxel.blt(self.x, self.y, 0, 0, self.type*8, self.w, self.h)
-
-
-class Blast:
-    # Blast class represent the explosion when player contact with a dinosaur
-    def __init__(self, x, y):
-        # init
-        self.x = x
-        self.y = y
-        self.radius = BLAST_START_RADIUS
-        self.is_alive = True
-
-    def update(self):
-        # Explode till END_RADIUS then disappear
-        self.radius += 0.7
-        if self.radius > BLAST_END_RADIUS:
-            self.is_alive = False
-
-    def draw(self):
-        if self.radius < BLAST_END_RADIUS:
-            pyxel.circ(self.x, self.y, self.radius, BLAST_COLOR_IN)
-            pyxel.circb(self.x, self.y, self.radius, BLAST_COLOR_OUT)
-
-
-class SmallRexDinosaur:
-    # Class dinosaur represent an enemy dinosaur
-    def __init__(self, x: int, y):
-        # init
-        self.x = x
-        self.y = y
-        self.h = 8
-        self.w = 8
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(pyxel.frame_count % 20 > 7):
-            pyxel.blt(self.x, self.y, 0, 8, 0, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 8, 8, self.w, self.h)
-
-    def update(self):
-        # Move to leftside
-        self.x = self.x - current_game_speed*1.5 - 1
-        if(self.x < -self.w):
-            self.is_alive = False
-
-    def draw(self):
-        # draw dinosaur
-        self.animation()
-
-
-class NormalFlyingDinosaur:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.h = 8
-        self.w = 8
-        self.acc = 0.1
-        self.create_at = pyxel.frame_count
-        self.is_comming = True
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(self.is_comming):
-            if(pyxel.frame_count % 20 > 7):
-                pyxel.blt(self.x, self.y, 0, 8, 16, self.w, self.h)
-            else:
-                pyxel.blt(self.x, self.y, 0, 8, 24, self.w, self.h)
-        else:
-            if(pyxel.frame_count % 20 > 7):
-                pyxel.blt(self.x, self.y, 0, 16, 0, self.w, self.h)
-            else:
-                pyxel.blt(self.x, self.y, 0, 16, 8, self.w, self.h)
-
-    def update(self):
-        if(self.x < -self.w):
-            self.is_alive = False
-        if(self.is_comming):
-            if(pyxel.frame_count - self.create_at == 60 * 3):
-                self.is_comming = False
-                self.w = 24
-        else:
-            self.acc += 0.2
-            self.x -= current_game_speed * (self.acc)
-
-    def draw(self):
-        self.animation()
-
-
-class BigRexDinosaur:
-    # Class dinosaur represent an enemy dinosaur
-    def __init__(self, x, y):
-        # init
-        self.x = x
-        self.y = y
-        self.h = 16
-        self.w = 32
-        self.is_alive = True
-        enemy.append(self)
-
-    def animation(self):
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 16, 16, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 16, 32, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 16, 48, self.w, self.h)
-
-    def update(self):
-        # Move to leftside
-        self.x = self.x - current_game_speed + 0.2
-        if(self.x < -self.w):
-            self.is_alive = False
-
-    def draw(self):
-        # draw dinosaur
-        self.animation()
-
-
-class Player:
-    # Class present the player
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.w = 16
-        self.h = 16
-        self.booster = 100
-        self.is_alive = True
-
-    def speedingAnimation(self):
-        # Load Animation when standing by
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 64, 32, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 64, 16, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 64, 48, self.w, self.h)
-
-    def runningAnimation(self):
-        if(pyxel.frame_count % 14 < 6):
-            pyxel.blt(self.x, self.y, 0, 48, 32, self.w, self.h)
-        elif(pyxel.frame_count % 14 > 10):
-            pyxel.blt(self.x, self.y, 0, 48, 16, self.w, self.h)
-        else:
-            pyxel.blt(self.x, self.y, 0, 48, 48, self.w, self.h)
-
-    def update(self):
-        # Moving player around with w a s d key
-        if not self.is_alive:
-            return
-        if(self.x > PLAYER_X_START):
-            if(not (pyxel.btn(pyxel.KEY_D) and self.booster > 0)):
-                self.x -= current_game_speed
-        if(not pyxel.btn(pyxel.KEY_D) and self.booster <= 100):
-            self.booster += 0.7
-        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
-            self.booster = self.booster - 1.5
-            if(self.x < SCREEN_WIDTH - self.h):
-                self.x = self.x + ((SCREEN_WIDTH/3) / (100/1.5))
-        if(pyxel.btn(pyxel.KEY_W)):
-            if(self.y > 0):
-                self.y = self.y - current_game_speed
-        if(pyxel.btn(pyxel.KEY_S)):
-            if(self.y < SCREEN_HEIGHT - self.h):
-                self.y = self.y + current_game_speed
-
-    def draw_booster(self):
-        pyxel.rect(self.x, self.y - 3, 14, 1, 6)
-        pyxel.rect(self.x, self.y - 3, 14 * (self.booster/100), 1, 12)
-
-    def draw(self):
-        # Draw with animations
-        if(pyxel.btn(pyxel.KEY_D) and self.booster > 0):
-            self.speedingAnimation()
-        else:
-            self.runningAnimation()
-        self.draw_booster()
 
 
 class App:
@@ -320,7 +77,7 @@ class App:
     def update(self):
         global current_game_speed
         current_game_speed += current_game_acc
-        self.background.update()
+        self.background.update(current_game_speed)
         match self.game_state:
             case Game_State.SCREEN_MENU:
                 self.update_screen_menu()
@@ -352,16 +109,17 @@ class App:
         r = random.randint(0, 3)
         if(pyxel.frame_count % 25 == 0 and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            # SmallRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            SmallRexDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
         if(pyxel.frame_count % 30 == 0 and len(food) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 8)
-            Food(SCREEN_WIDTH - 8, new_y, r)
+            Food(SCREEN_WIDTH - 8, new_y, food, r)
         if(pyxel.frame_count % 80 == 0 and len(enemy) < 30):
-            new_y = random.randint(0, SCREEN_HEIGHT - 32)
-            BigRexDinosaur(SCREEN_WIDTH - 8, new_y)
+            new_y = random.randint(0, SCREEN_HEIGHT - 8)
+            BigRexDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
         if(pyxel.frame_count % 120 == r and len(enemy) < 30):
             new_y = random.randint(0, SCREEN_HEIGHT - 32)
-            NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y)
+            NormalFlyingDinosaur(SCREEN_WIDTH - 8, new_y, enemies=enemy)
 
         for item in food:
             if (
@@ -480,16 +238,6 @@ class App:
             pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 32, 16, 16)
         else:
             pyxel.blt(SCREEN_WIDTH - 16, SCREEN_HEIGHT - 18, 0, 0, 48, 16, 16)
-
-
-def sound_set_up():
-    pyxel.sound(0).set(notes='A2C3', tones='TT',
-                       volumes='33', effects='NN', speed=10)
-    pyxel.sound(1).set(notes='A2C2', tones='TT',
-                       volumes='33', effects='NN', speed=10)
-    pyxel.sound(3).set(notes=("f0 r a4 r  f0 f0 a4 r" "f0 r a4 r   f0 f0 a4 f0"),
-                       tones="n", volumes="1", effects="f", speed=25)
-    pyxel.music(0).set([], [], [3], [])
 
 
 App()
